@@ -2,7 +2,7 @@
 
     <div class="relative w-full md:w-[320px] xl:w-[400px] overflow-y-auto shrink-0 h-full border">
 
-        @include('livewire.chat.chat-list')
+        <livewire:chat.chat-list>
 
     </div>
 
