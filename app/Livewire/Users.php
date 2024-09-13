@@ -6,9 +6,11 @@ use App\Models\Conversation;
 use App\Models\User;
 use Livewire\Component;
 use Unsplash\Photo;
+use App\Traits\AvatarTrait;
 
 class Users extends Component
 {
+    use AvatarTrait;
     public $users;
 
     public function mount()
@@ -16,7 +18,7 @@ class Users extends Component
         $this->users = User::all();
     }
 
-    public function getRandomAvatar($user)
+    /* public function getRandomAvatar($user)
     {
 
         $cacheKey = 'user_avatar_' . $user->id;
@@ -30,7 +32,8 @@ class Users extends Component
         $avatarUrl = $photo->urls['small'];
         cache()->put($cacheKey, $avatarUrl, now()->addDay());
         return $avatarUrl;
-    }
+    } */
+
     public function message($userId)
     {
         $authenticatedUserId = auth()->id();
