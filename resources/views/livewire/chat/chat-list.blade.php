@@ -1,4 +1,19 @@
-<div x-data="{ type: 'all' }" class="flex flex-col transition-all h-full overflow-hidden">
+<div
+    x-data="{ type: 'all', query:@entangle('query') }"
+    x-init="
+        setTimeout(()=>{
+            conversationElement = document.getElementById('conversation-'+query);
+
+            {{-- scroll to the element --}}
+
+            if(conversationElement){
+                conversationElement.scrollIntoView({'behavior':'smooth'});
+            }
+        }
+        ),200;
+
+    "
+    class="flex flex-col transition-all h-full overflow-hidden">
 
     <header class="px-3 z-10 bg-white sticky top-0 w-full py-2">
 
@@ -44,8 +59,11 @@
             @if ($conversations)
 
             @foreach ($conversations as $conversation)
+
             <li
-                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2">
+                id="conversation{{$conversation->id}}" wire:key="{{$conversation->id}}"
+                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2 {{ $conversation->id==$selectedConversation ? 'bg-gray-700/70':'' }}>
+                {{-- {{ $conversation->id==$selectedConversation->id ? 'bg-gray-100/70':'' }} --}}
                 <a href="#" class="shrink-0">
                     <x-avatar src="{{ $this->getRandomAvatar($conversation->getReceiver()) }}" />
                 </a>

@@ -10,17 +10,29 @@ class ChatList extends Component
 {
     use AvatarTrait;
     public $selectedConversation;
+    public $query;
+
+    public function mount($query) {
+        $this->selectedConversation = $query;
+    }
 
     public function render()
     {
+        // dd($this->selectedConversation);
+        // dump($this->selectedConversation);
+        // dump(request()->all());
         $user = auth()->user();
+
         $conversations = Cache::remember('conversations_' . $user->id, 60, function () use ($user) {
             // dd($conversations);
             return $user->conversations()->latest('updated_at')->get();
+
         });
+
         return view('livewire.chat.chat-list', [
             'conversations' => $conversations,
             'user' => $user,
+
         ]);
     }
     // public function render()
