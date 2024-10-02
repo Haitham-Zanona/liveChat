@@ -2,41 +2,42 @@
 
 namespace App\Livewire\Chat;
 
+use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
 
 class ChatBox extends Component
 {
+
+    public $query;
     public $selectedConversation;
-    public $body;
+    public $body = '';
 
     public $loadedMessages;
 
-    public function loadMessages()
+    public function mount()
     {
+        $this->query = request()->route('query');
 
-        $this->loadedMessages = Message::where('conversation_id', $this->selectedConversation->id)->get();
+        // Fetch the conversation object using the query parameter
+        $this->selectedConversation = Conversation::find($this->query);
+
+        // Check if the conversation was found
+        if (!$this->selectedConversation) {
+            // Handle the case where the conversation is not found
+            abort(404, 'Conversation not found');
+        }
+        $this->loadMessages();
     }
 
-    public function mount($query = null)
+    public function loadMessages()
     {
-        // $this->selectedConversation = $query;
-        if ($query) {
-            $this->selectedConversation = $query;
-        } else {
-            // Get the default conversation from the database
-            $defaultConversation = auth()->user()->conversations()->latest()->first();
-
-            if ($defaultConversation) {
-                $this->selectedConversation = $defaultConversation;
-            } else {
-                // Redirect the user to a page where they can select a conversation
-                return redirect()->route('conversations.index');
-            }
-        }
-
-        $this->loadMessages();
+        // dd($this->selectedConversation->id);
+        $this->loadedMessages = Message::where('conversation_id', $this->selectedConversation->id)->where(function ($query) {
+            $query->where('sender_id', auth()->id())->orWhere('receiver_id', auth()->id());
+        })->get();
     }
 
     public function sendMessage()
@@ -44,18 +45,31 @@ class ChatBox extends Component
 
         // dd($this->body);
 
-        $this->validate(['body' => 'required|string']);
+        // $this->validate(['body' => 'required|string']);
+
+// dd($this->body);
+        $validator = Validator::make(['body' => $this->body], [
+            'body' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Retrieve the validated input...
+        $validated = $validator->validated();
 
         // Output the current state of the $body property before validation
-    // dd('Before validation:', $this->body);
+        // dd('Before validation:', $this->body);
 
-    // $validatedData = $this->validate([
-    //     'body' => 'string',
-    // ]);
+        // $validatedData = $this->validate([
+        //     'body' => 'string',
+        // ]);
 
-    // // Output the current state of the $body property after validation
-    // dd('After validation:', $validatedData);
-
+        // // Output the current state of the $body property after validation
+        // dd('After validation:', $validatedData);
 
         $createdMessage = Message::create([
             'conversation_id' => $this->selectedConversation->id,
@@ -63,18 +77,33 @@ class ChatBox extends Component
             'receiver_id' => $this->selectedConversation->getReceiver()->id,
             'body' => $this->body,
         ]);
+        // scroll to bottom
+        $this->dispatch('scroll-bottom');
 
-        // $this->reset('body');
-        $this->body = '';
+        // push the message
+        $this->loadedMessages->push($createdMessage);
 
-        // dd($this->body);
+        // update conversation model
+        $this->selectedConversation->updated_at = now();
 
-            // push the message
-            $this->loadedMessages->push($createdMessage);
+        $this->selectedConversation->save();
+        // $conversations = Conversation::orderBy('updated_at', 'desc')->get();
+
+        // refresh chatlist
+        // $this->emitTo('chat.chat-list','refresh');
 
     }
+
+    public function resetInput()
+    {
+        $this->body = ''; // Reset the value
+    }
+
     public function render()
     {
-        return view('livewire.chat.chat-box');
+
+        return view('livewire.chat.chat-box', [
+            'selectedConversation' => $this->selectedConversation,
+        ]);
     }
 }

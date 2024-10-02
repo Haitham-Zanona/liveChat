@@ -1,4 +1,15 @@
-<div class="w-full overflow-hidden">
+<div
+x-data="{height:0,conversationElement:document.getElementById('conversation')}"
+x-init="
+    height= conversationElement.scrollHeight;
+    $nextTick(()=>conversationElement.scrollTop= height);
+"
+
+@scroll-bottom.window="
+    $nextTick(()=>conversationElement.scrollTop= height);
+"
+
+class="w-full overflow-hidden">
 
     <div class="border-b flex flex-col overflow-y-scroll grow h-full">
     <!-- header -->
@@ -32,13 +43,26 @@
     <!-- body -->
 
 
-    <main class="flex flex-col gap-3 p-2.5 overflow-y-auto flex-grow overscroll-contain overflow-x-hidden w-full my-auto">
+    <main id="conversation" class="flex flex-col gap-3 p-2.5 overflow-y-auto flex-grow overscroll-contain overflow-x-hidden w-full my-auto">
 
         @if ($loadedMessages)
 
-        @foreach ($loadedMessages as $message)
+        @php
+            $previousMessage= null;
+        @endphp
+
+        @foreach ($loadedMessages as $key=> $message)
+
+        {{-- keep track of the previous message --}}
 
 
+        @if ($key>0)
+
+        @php
+            $previousMessage= $loadedMessages->get($key-1)
+        @endphp
+
+        @endif
 
         <div @class([
             'max-w-[85%] md:max-w-[78%] flex w-auto gap-2 relative mt-2',
@@ -47,7 +71,11 @@
 
             <!-- avatar -->
 
-            <div @class(['shrink-0'])>
+            <div @class([
+                    'shrink-0',
+                    'invisible'=>$previousMessage?->sender_id==$message->sender_id,
+                    'hidden'=>$message->sender_id === auth()->id(),
+                        ])>
 
                 <x-avatar />
             </div>
@@ -70,7 +98,7 @@
                             'text-gray-500'=>!($message->sender_id=== auth()->id()),
                             'text-white'=>$message->sender_id=== auth()->id(),
                                 ])>
-                        5:25 am
+                            {{ $message->created_at->format('g:i a') }}
                         </p>
 
                         <!-- message status , only show if message belongs auth -->
@@ -122,10 +150,10 @@
     <!-- send message -->
     <footer class="shrink-0 z-10 bg-white inset-x-0">
 
-        <div class="p-2 border-t">
+        <div class="p-2 border-t"
+        x-data="{ body: @entangle('body').defer }">
 
             <form
-            x-data="{body:@entangle('body').defer}"
             @submit.prevent="$wire.sendMessage"
             method="POST" autocapitalize="off">
                 @csrf
@@ -134,23 +162,23 @@
                 <div class="grid grid-cols-12">
                     <input
                     x-model="body"
-                    wire:model="body"
+                    wire:model.defer="body"
                     type="text"
                     autocomplete="off"
                     autofocus
                     placeholder="write your message here"
                     maxlength="1700"
-
                     class="col-span-10 bg-gray-100 border-0 outline-0 focus:border-0 focus:ring-0 hover:ring-0 rounded-lg focus-outline-none">
 
 
-                    <button x-bind:disabled="!body.trim()" type="submit" class="col-span-2" wire:click="sendMessage">Send</button>
+                    <button wire:click="resetInput" x-bind:disabled="!body.trim()" type="submit" class="col-span-2" >Send</button>
                 </div>
             </form>
 
-          {{--   @error('body')
+
+            @error('body')
                 <p>{{ $message }}</p>
-            @enderror --}}
+            @enderror
 
         </div>
 

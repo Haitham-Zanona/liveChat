@@ -62,14 +62,13 @@
 
             <li
                 id="conversation{{$conversation->id}}" wire:key="{{$conversation->id}}"
-                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2 {{ $conversation->id==$selectedConversation ? 'bg-gray-700/70':'' }}>
-                {{-- {{ $conversation->id==$selectedConversation->id ? 'bg-gray-100/70':'' }} --}}
+                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2 {{ $conversation->id==$selectedConversation ? 'bg-gray-300/70':'' }}">
                 <a href="#" class="shrink-0">
                     <x-avatar src="{{ $this->getRandomAvatar($conversation->getReceiver()) }}" />
                 </a>
 
                 <aside class="grid grid-cols-12 w-full">
-                    <a href="#"
+                    <a href="{{route('chat',$conversation->id)}}"
                         class="col-span-11 border-b pb-2 border-gray-200 relative overflow-hidden truncate leading-5 w-full flex-nowrap p-1">
                         <!-- name & date -->
                         <div class="flex justify-between w-full items-center">
@@ -77,7 +76,7 @@
                                 {{ $conversation->getReceiver()->name }}
                             </h6>
 
-                            <small class="text-gray-700">{{ $conversation->messages?->last()?->created_at?->shortAbsoluteDiffForHumans() }}</small>
+                            <small class="text-gray-500">{{ $conversation->messages?->last()?->created_at?->shortAbsoluteDiffForHumans() }}</small>
 
                         </div>
                         <!-- Message body -->

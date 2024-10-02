@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Chat;
 
-use App\Traits\AvatarTrait;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
+use App\Traits\AvatarTrait;
+use App\Models\Conversation;
+use Illuminate\Support\Facades\Cache;
 
 class ChatList extends Component
 {
@@ -12,8 +13,23 @@ class ChatList extends Component
     public $selectedConversation;
     public $query;
 
-    public function mount($query) {
-        $this->selectedConversation = $query;
+    public function mount($query = null) {
+        if ($query) {
+            $this->selectedConversation = $query;
+        } else {
+            // Get the default conversation from the database
+            $defaultConversation = auth()->user()->conversations()->latest()->first();
+
+            if ($defaultConversation) {
+                $this->selectedConversation = $defaultConversation->id;
+            }
+                // else {
+                // // Redirect the user to a page where they can select a conversation
+                // return redirect()->route('conversations.index');
+                // }
+        }
+
+        // $this->loadMessages();
     }
 
     public function render()
@@ -26,6 +42,7 @@ class ChatList extends Component
         $conversations = Cache::remember('conversations_' . $user->id, 60, function () use ($user) {
             // dd($conversations);
             return $user->conversations()->latest('updated_at')->get();
+            // return Conversation::orderBy('updated_at', 'desc')->get();
 
         });
 
