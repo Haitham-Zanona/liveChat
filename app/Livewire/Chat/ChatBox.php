@@ -7,6 +7,7 @@ use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Component;
+use Livewire\Livewire;
 
 class ChatBox extends Component
 {
@@ -61,15 +62,6 @@ class ChatBox extends Component
         // Retrieve the validated input...
         $validated = $validator->validated();
 
-        // Output the current state of the $body property before validation
-        // dd('Before validation:', $this->body);
-
-        // $validatedData = $this->validate([
-        //     'body' => 'string',
-        // ]);
-
-        // // Output the current state of the $body property after validation
-        // dd('After validation:', $validatedData);
 
         $createdMessage = Message::create([
             'conversation_id' => $this->selectedConversation->id,
@@ -77,6 +69,10 @@ class ChatBox extends Component
             'receiver_id' => $this->selectedConversation->getReceiver()->id,
             'body' => $this->body,
         ]);
+
+        // reset body
+        $this->body = '';
+
         // scroll to bottom
         $this->dispatch('scroll-bottom');
 
@@ -90,14 +86,17 @@ class ChatBox extends Component
         // $conversations = Conversation::orderBy('updated_at', 'desc')->get();
 
         // refresh chatlist
-        // $this->emitTo('chat.chat-list','refresh');
+        // Livewire::emitTo('chat.chat-list','refresh');
+        // $this->dispatch('chat.chat-list','refresh');
+        $this->dispatch('refresh');
+
 
     }
 
-    public function resetInput()
-    {
-        $this->body = ''; // Reset the value
-    }
+    // public function resetInput()
+    // {
+    //     $this->body = ''; // Reset the value
+    // }
 
     public function render()
     {

@@ -62,7 +62,7 @@
 
             <li
                 id="conversation{{$conversation->id}}" wire:key="{{$conversation->id}}"
-                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2 {{ $conversation->id==$selectedConversation ? 'bg-gray-300/70':'' }}">
+                class="py-3 hover:bg-gray-50 rounded-2xl dark:hover:bg-gray-300/30 transition-colors duration-150 flex gap-4 relative w-full cursor-pointer px-2 {{ $conversation->id==$selectedConversation->id ? 'bg-gray-300/70':'' }}">
                 <a href="#" class="shrink-0">
                     <x-avatar src="{{ $this->getRandomAvatar($conversation->getReceiver()) }}" />
                 </a>

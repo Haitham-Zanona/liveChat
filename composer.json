@@ -10,7 +10,7 @@
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
-        "livewire/livewire": "^3.5",
+        "livewire/livewire": "3.0",
         "pusher/pusher-php-server": "^7.2",
         "symfony/polyfill-php72": "^1.31",
         "twbs/bootstrap-icons": "^1.11",

@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Traits\AvatarTrait;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Attributes\On;
 
 class ChatList extends Component
 {
@@ -13,58 +14,71 @@ class ChatList extends Component
     public $selectedConversation;
     public $query;
 
-    public function mount($query = null) {
-        if ($query) {
-            $this->selectedConversation = $query;
-        } else {
-            // Get the default conversation from the database
-            $defaultConversation = auth()->user()->conversations()->latest()->first();
+    public $conversations;
 
-            if ($defaultConversation) {
-                $this->selectedConversation = $defaultConversation->id;
-            }
-                // else {
-                // // Redirect the user to a page where they can select a conversation
-                // return redirect()->route('conversations.index');
-                // }
+    // protected $listeners = ['refresh' => 'refreshChatList'];
+
+
+    public function mount($query = null) {
+        $this->query = request()->route('query');
+
+        // Fetch the conversation object using the query parameter
+        $this->selectedConversation = Conversation::find($this->query);
+
+        // dd($this->selectedConversation->id);
+        // Check if the conversation was found
+        if (!$this->selectedConversation) {
+            // Handle the case where the conversation is not found
+            abort(404, 'Conversation not found');
         }
 
-        // $this->loadMessages();
+        $this->loadConversations();
+
     }
+
+    #[On('refresh')]
+    public function refreshChatList()
+    {
+        $this->loadConversations();
+    }
+
+
+    protected function loadConversations(){
+        $user = auth()->user();
+
+        // $this->conversations = Cache::remember('conversations_' . $user->id, 60, function () use ($user) {
+        //      dd($this->conversations);
+        //     // return $user->conversations()->latest('updated_at')->get();
+        //     return Conversation::orderBy('updated_at', 'desc')->get();
+
+        // });
+
+
+        $this->conversations = Cache::remember('conversations_' . $user->id, 60, function () use ($user) {
+            return $user->conversations()->where('sender_id', $user->id)
+                ->orWhere('receiver_id', $user->id)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
+            // return Conversation::where('sender_id', $user->id)
+            //     ->orWhere('receiver_id', $user->id)
+            //     ->orderBy('updated_at', 'desc')
+            //     ->get();
+        });
+    }
+
+
+
+
 
     public function render()
     {
-        // dd($this->selectedConversation);
-        // dump($this->selectedConversation);
-        // dump(request()->all());
-        $user = auth()->user();
-
-        $conversations = Cache::remember('conversations_' . $user->id, 60, function () use ($user) {
-            // dd($conversations);
-            return $user->conversations()->latest('updated_at')->get();
-            // return Conversation::orderBy('updated_at', 'desc')->get();
-
-        });
 
         return view('livewire.chat.chat-list', [
-            'conversations' => $conversations,
-            'user' => $user,
+            'conversations' => $this->conversations,
+            'user' => auth()->user(),
 
         ]);
     }
-    // public function render()
-    // {
-    //     $user = auth()->user();
-    //     $conversations = Cache::store('redis')->remember('conversations_' . $user->id, 60, function () use ($user) {
-    //         return $user->conversations()->latest('updated_at')->get();
-    //     });
-    //     return view('livewire.chat.chat-list', [
-    //         'conversations' => $conversations,
-    //         // 'conversations' => $user->conversations()->latest('updated_at')->get(),
-    //         /* 'conversations' => Conversation::cacheFor(60) // cache for 1 minute
-    //         ->where('user_id', auth()->id())
-    //         ->get(), */
-    //         'user' => $user,
-    //     ]);
-    // }
+
 }

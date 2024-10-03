@@ -171,7 +171,7 @@ class="w-full overflow-hidden">
                     class="col-span-10 bg-gray-100 border-0 outline-0 focus:border-0 focus:ring-0 hover:ring-0 rounded-lg focus-outline-none">
 
 
-                    <button wire:click="resetInput" x-bind:disabled="!body.trim()" type="submit" class="col-span-2" >Send</button>
+                    <button x-bind:disabled="!body.trim()" type="submit" class="col-span-2" >Send</button>
                 </div>
             </form>
 
